@@ -26,11 +26,24 @@ public class HabrCareerParse {
                 Element linkElement = titleElement.child(0);
                 String vacancyName = titleElement.text();
                 String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+                String description = null;
+                try {
+                    description = new HabrCareerParse().retrieveDescription(link);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Element date = row.select(".vacancy-card__date").first().child(0);
                 String dateName = date.attr("datetime");
-                System.out.printf("%s %s %s%n", vacancyName, link, dateName);
+                System.out.printf("%s %s %s%n %s%n", vacancyName, link, dateName, description);
             });
             pageNumber++;
         }
+    }
+
+    private String retrieveDescription(String link) throws IOException {
+        Connection connection = Jsoup.connect(link);
+        Document document = connection.get();
+        Element vacancyDescription = document.select(".vacancy-description__text").first();
+        return vacancyDescription.text();
     }
 }

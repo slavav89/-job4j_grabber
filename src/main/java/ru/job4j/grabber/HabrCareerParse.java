@@ -16,10 +16,7 @@ import java.util.List;
 public class HabrCareerParse implements Parse {
 
     private static final String SOURCE_LINK = "https://career.habr.com";
-    private static final String PREFIX = "/vacancies?page=";
-    private static final String SUFFIX = "&q=Java%20developer&type=all";
     private static HabrCareerParse habrCareerParse = new HabrCareerParse(new HabrCareerDateTimeParser());
-    private static int pageNumber = 1;
     private final DateTimeParser dateTimeParser;
 
     public HabrCareerParse(DateTimeParser dateTimeParser) {
@@ -29,13 +26,17 @@ public class HabrCareerParse implements Parse {
     @Override
     public List<Post> list(String fullLink) {
         List<Post> result = new ArrayList<>();
-        Connection connection = Jsoup.connect(fullLink);
-        try {
-            Document document = connection.get();
-            Elements rows = document.select(".vacancy-card__inner");
-            rows.forEach(row -> result.add(createPost(row)));
-        } catch (IOException e) {
-            e.printStackTrace();
+        int numberPage = 5;
+        while (numberPage > 0) {
+            Connection connection = Jsoup.connect(fullLink + numberPage);
+            try {
+                Document document = connection.get();
+                Elements rows = document.select(".vacancy-card__inner");
+                rows.forEach(row -> result.add(createPost(row)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            numberPage--;
         }
         return result;
     }
@@ -63,14 +64,5 @@ public class HabrCareerParse implements Parse {
         Document document = connection.get();
         Element vacancyDescription = document.select(".vacancy-description__text").first();
         return vacancyDescription.text();
-    }
-
-    public static void main(String[] args) {
-        while (pageNumber <= 5) {
-            String fullLink = "%s%s%d%s".formatted(SOURCE_LINK, PREFIX, pageNumber, SUFFIX);
-            List<Post> listPost = habrCareerParse.list(fullLink);
-            listPost.forEach(System.out::println);
-            pageNumber++;
-        }
     }
 }

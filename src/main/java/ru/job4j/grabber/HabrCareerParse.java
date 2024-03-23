@@ -56,7 +56,7 @@ public class HabrCareerParse implements Parse {
             description = "There is no description";
         }
         LocalDateTime created = habrCareerParse.dateTimeParser.parse(dateName);
-        return new Post(title, link, description, created);
+        return new Post(title, description, link, created);
     }
 
     private String retrieveDescription(String link) throws IOException {
